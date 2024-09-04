@@ -10,12 +10,26 @@
 
   ![](images/perdante2.png)
 
-move()
+chemin bloqué = 0  
+1 pion seul = 1 point  
+2 ensembles + 1 coté bloqué = 2 points  
+2 ensembles libres = 3 points  
+3 ensembles + 1 coté bloqué = 4 points  
+3 ensembles libres = 5 points  
+4 ensembles + 1 coté bloqué = 6 points  
+4 ensembles libres = inf
 
-verifier score actuel
-si on est d=0
+ArrayList tableau du board
+
+Algo:
+
+move(){
+
+verifier score actuel  
+si on est d=0  
 make move
 
 move(nouvelles données, d-1)
 
-return x, y
+return x, y  
+}
