@@ -68,6 +68,54 @@ public class Gomoku {
 		}
 	}
 
+
+	private int calculateScore(){
+		
+		for(int row = 0; row < SIZE; row ++){
+			for (int col = 0; col < SIZE; col ++){
+				char player = board.get(row * SIZE + col);
+				if (player == PLAYER1){
+					score += calculDirection(row,col,player);
+				}else if (player == PLAYER2){
+					score -= calculDirection(row,col,player);
+				}
+
+			}
+			}
+		return score;
+	}
+
+	private int calculDirection(int row, int col, char player){
+		int score = 0;
+		score += scoreDirection(row,col,1,0,player);
+		score += scoreDirection(row,col,0,1,player);
+		score += scoreDirection(row,col,1,1,player);
+		score += scoreDirection(row,col,1,-1,player);
+
+		return score;
+	}
+
+	private int scoreDirection(int row, int col, int dRow, int dCol, char player){
+
+		int compteur;
+		int vide;
+		int r = row;
+		int c = col;
+		
+		//parcourir une direction donnée jusqu'il n'a plus de pions d'un joueur donné
+		while (r < SIZE && r >=0 && c < SIZE && c >= 0 && board.get(row * SIZE + col)==player){
+			compteur++;
+			r += dRow;
+			c += dCol;
+		}
+
+		r += dRow;
+		c += dCol;
+		if (board.get(row* SIZE + col) == EMPTY){
+			vide++;
+		}
+	} 
+
 	// Permet au joueur 2 de jouer un coup aléatoire
 	public void makeRandomMove() {
 		List<Integer> emptyPositions = new ArrayList<>();
