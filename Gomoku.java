@@ -68,7 +68,7 @@ public class Gomoku {
 		}
 	}
 
-
+	// calcul score du tableau
 	private int calculateScore(){
 		
 		for(int row = 0; row < SIZE; row ++){
@@ -84,7 +84,7 @@ public class Gomoku {
 			}
 		return score;
 	}
-
+	// calcul score d'une direction
 	private int calculDirection(int row, int col, char player){
 		int score = 0;
 		score += scoreDirection(row,col,1,0,player);
@@ -109,12 +109,46 @@ public class Gomoku {
 			c += dCol;
 		}
 
-		r += dRow;
-		c += dCol;
-		if (board.get(row* SIZE + col) == EMPTY){
+		if (r < SIZE && r >=0 && c < SIZE && c >= 0 && board.get(row * SIZE + col) == EMPTY){
 			vide++;
 		}
+
+		  // Répéter dans la direction opposée
+        r = row - dRow;
+        c = col - dCol;
+
+        while (r >= 0 && r < SIZE && c >= 0 && c < SIZE && board.get(r * SIZE + c) == player) {
+            compteur++;
+            r -= dRow;
+            c -= dCol;
+        }
+
+        if (r >= 0 && r < SIZE && c >= 0 && c < SIZE && board.get(r * SIZE + c) == EMPTY) {
+            vide++;
+        }
+
+		if(compteur == 5){
+			return 10000;
+		} else if (compteur ==4 && vide==2){
+			return 8000;
+		} else if (compteur ==4 && vide==1){
+			return 5000;
+		} else if (compteur ==3 && vide==2){
+			return 3000;
+		} else if (compteur ==3 && vide==1){
+			return 2000;
+		} else if (compteur ==2 && vide==2){
+			return 1000;
+		} else if (compteur ==2 && vide==1){
+			return 100;
+		}
+		return 0;
+
+
 	} 
+
+
+	
 
 	// Permet au joueur 2 de jouer un coup aléatoire
 	public void makeRandomMove() {
