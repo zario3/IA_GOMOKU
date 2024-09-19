@@ -13,7 +13,8 @@ On ne gére pas le cas du match nul, faut check si board plein et on arrete (ou 
 on arrete à SIZE*SIZE
 */
 public class Gomoku {
-	private static final int SIZE = 15; // Taille du plateau (15x15)
+
+    private static final int SIZE = 15; // Taille du plateau (15x15)
     private static final char EMPTY = '.';
     private static final char PLAYER1 = 'X'; // Représentation du joueur 1
     private static final char PLAYER2 = 'O'; // Représentation du joueur 2
@@ -52,7 +53,7 @@ public class Gomoku {
             System.out.println();
         }
 
-        System.out.println("Score: " + calculateScore());
+//        System.out.println("Score: " + calculateScore());
     }
 
     // Permet au joueur actuel de faire un mouvement
@@ -108,13 +109,13 @@ public class Gomoku {
         int c = col;
 
         //parcourir une direction donnée jusqu'il n'a plus de pions d'un joueur donné
-        while (r < SIZE && r >= 0 && c < SIZE && c >= 0 && board.get(row * SIZE + col) == player) {
+        while (r < SIZE && r >= 0 && c < SIZE && c >= 0 && board.get(r * SIZE + c) == player) {
             compteur++;
             r += dRow;
             c += dCol;
         }
 
-        if (r < SIZE && r >= 0 && c < SIZE && c >= 0 && board.get(row * SIZE + col) == EMPTY) {
+        if (r < SIZE && r >= 0 && c < SIZE && c >= 0 && board.get(r * SIZE + c) == EMPTY) {
             vide++;
         }
 
@@ -141,11 +142,11 @@ public class Gomoku {
         } else if (compteur == 3 && vide == 2) {
             return 3000;
         } else if (compteur == 3 && vide == 1) {
-            return 2000;
-        } else if (compteur == 2 && vide == 2) {
             return 1000;
-        } else if (compteur == 2 && vide == 1) {
+        } else if (compteur == 2 && vide == 2) {
             return 100;
+        } else if (compteur == 2 && vide == 1) {
+            return 50;
         }
         return 0;
 
@@ -173,15 +174,17 @@ public class Gomoku {
                 int row = index / SIZE;
                 int col = index % SIZE;
                 board.set(index, player);
-
+                // max joueur 2: O
                 if (player == PLAYER2) {
                     score = minimax(depth - 1, PLAYER1, alpha, beta)[0];
+                    // a chaque nouveau maxScore, prendre valeur de la colonne et de la ligne aussi.
                     if (score > maxScore) {
                         maxScore = score;
                         maxRow = row;
                         maxCol = col;
                     }
                     alpha = Math.max(alpha, maxScore);
+                    //min (joueur 1: X)
                 } else if (player == PLAYER1) {
                     score = minimax(depth - 1, PLAYER2, alpha, beta)[0];
                     if (score < maxScore) {
@@ -261,6 +264,7 @@ public class Gomoku {
             printBoard();
             System.out.println("C'est le tour du joueur " + currentPlayer);
             if (currentPlayer == PLAYER1) {
+//                makeMinimaxMove();
                 System.out.print("Entrez la ligne: ");
                 int row = scanner.nextInt();
                 System.out.print("Entrez la colonne: ");
@@ -274,7 +278,7 @@ public class Gomoku {
                 makeMinimaxMove(); // Le joueur 2 joue un coup aléatoire
             }
         }
-	}
+    }
 
 	public static void main(String[] args) {
 		Gomoku game = new Gomoku();
