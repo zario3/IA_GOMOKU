@@ -1,5 +1,5 @@
 
-# Defunition de la fonction d'evaluation
+# Definition de la fonction d'evaluation
 
 ## Situations perdantes
 
@@ -42,7 +42,7 @@ Cette fonction regarde les cases autour d'un jeton dans une direction donnée et
 
 **minimax**
 
-Evalue tous les futurs coups possibles à une distance (profondeur) donnée et choisi le meilleur coup possible supposant que le joueur adverse choisisse son meilleur coup selon nos critères.
+Evalue tous les futurs coups possibles à une distance (profondeur) donnée et choisi le meilleur coup possible supposant que le joueur adverse choisisse son meilleur coup selon nos critères. On optimise la fonction minimax avec la coupe alpha beta.
 
 **makeMinimaxMove**
 
