@@ -23,7 +23,23 @@ public class Gomoku {
     private Random random;
     private static final int DEPTH = 3;
 
-    public GomokuTest() {
+    private final int[] firstMoves = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 300, 300, 300, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 300, 500, 300, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 300, 300, 300, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    public Gomoku() {
         board = new ArrayList<>();
         for (int i = 0; i < SIZE * SIZE; i++) {
             board.add(EMPTY);
@@ -83,6 +99,8 @@ public class Gomoku {
                     score -= calculDirection(row, col, player);
                 } else if (player == PLAYER2) {
                     score += calculDirection(row, col, player);
+                    int index = row * SIZE + col;
+                    score += firstMoves[index];
                 }
 
             }
@@ -134,7 +152,7 @@ public class Gomoku {
         }
 
         if (compteur == 5) {
-            return 20000;
+            return 99999;
         } else if (compteur == 4 && vide == 2) {
             return 8000;
         } else if (compteur == 4 && vide == 1) {

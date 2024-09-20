@@ -15,56 +15,38 @@
 _On regarde l'ensemble de jetons ainsi que les chemins qu'ils forment_
 
 chemin bloqué = 0  
-1 pion seul = 1 point  
-2 ensembles + 1 coté bloqué = 2 points  
-2 ensembles libres = 3 points  
-3 ensembles + 1 coté bloqué = 4 points  
-3 ensembles libres = 5 points  
-4 ensembles + 1 coté bloqué = 6 points  
-4 ensembles libres = inf
-
-ArrayList tableau du board
-
-Algo:
-
-move(){
-
-verifier score actuel  
-si on est d=0  
-make move
-
-move(nouvelles données, d-1)
-
-return x, y  
-}
+2 ensembles + 1 coté bloqué = 50 points  
+2 ensembles libres = 100 points  
+3 ensembles + 1 coté bloqué = 1000 points  
+3 ensembles libres = 3000 points  
+4 ensembles + 1 coté bloqué = 5000 points  
+4 ensembles libres = 8000 points
+5 ensemnle = 99999 (infini)
 
 ## Algo fonction d'évaliation
 
-**Entrées** :
+**calculateScore** :
 
-- Tableau
+Cette fonction calcul le score du plateau à un état donné.
+Pour cela toutes les cases sont parcourues et analysées selon si elles sont occupées et de ce qu'il y a autour.
+Lorsqu'une case est occupée on appelle CallculDirection.
 
-**Sorties** :
+**calculDirection** :
 
-- Score du tableau pour le joueur donné
+Cette fonction analyse les 4 directions possibles et appelle scoreDirection pour obtenir un score.
 
-**idées**
+**scoreDirection**
 
-création d'une sous fonctions qui évalue une case:
-celle ci prend en entrée le joueur en question, le tableau, et la position de la case à évaluer
+Cette fonction regarde les cases autour d'un jeton dans une direction donnée et évalue la situation selon les critères définis en dessu.
 
-On parcours le tableau entier:
-si la case est vide. -> skip
-si la case est occuppée on appelle la fonction d'évaluation de case
+**minimax**
 
-**calculateScore**
+Evalue tous les futurs coups possibles à une distance (profondeur) donnée et choisi le meilleur coup possible supposant que le joueur adverse choisisse son meilleur coup selon nos critères.
 
-```
-Cette fonction calcule le score d'un plateau donné
-```
+**makeMinimaxMove**
 
-**calculDirection**
+Appel de la fonction makeMove avec le véredicte de la fonction miniMax
 
-```
-Cette fonction calcul le score d'une case donnée en analysant toutes les possibles directons. Si c'est nous qui jouons le score est ajouté, si c'est l'adversaire il est soustrait au score total de la position.
-```
+**firstMoves**
+
+Celui-ci est un tableau de force, défini pour que au début de la partie on donne un préférence aux cases au centre du plateau de jeu.
