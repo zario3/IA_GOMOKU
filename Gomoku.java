@@ -23,6 +23,7 @@ public class Gomoku {
     private Random random;
     private static final int DEPTH = 3;
 
+
     private final int[] firstMoves = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
