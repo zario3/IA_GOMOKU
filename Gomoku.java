@@ -1,6 +1,9 @@
 package Gomoku;
 
+import java.io.*;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -22,7 +25,8 @@ public class Gomoku {
     private char currentPlayer;
     private Random random;
     private static final int DEPTH = 3;
-
+    private static final String BASE64_CHARS ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    private HashMap<String,Integer> map = new HashMap<String,Integer>();
 
     private final int[] firstMoves = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -71,6 +75,43 @@ public class Gomoku {
         }
 
 //        System.out.println("Score: " + calculateScore());
+    }
+
+    public String boardID(){
+
+        String id = "";
+        
+        for (int row = 0; row < SIZE; row++){
+        
+            for (int col = 0; col < SIZE; col++){
+            
+            int index =row * SIZE + col;
+            
+            if (board.get(index) == EMPTY)
+                id += "0";
+            if (board.get(index) == PLAYER1)
+                    id += "1";
+            if (board.get(index) == PLAYER2)
+                    id += "2";
+            
+            }
+        
+        }
+
+
+        BigInteger decimalID = new BigInteger(id, 3);
+        BigInteger number = decimalID;
+        StringBuilder result = new StringBuilder();
+        BigInteger base = BigInteger.valueOf(64);
+
+        while(number.compareTo(BigInteger.ZERO)> 0){
+            int remainder = number.mod(base).intValue();
+            result.insert(0,BASE64_CHARS.charAt(remainder));
+            number = number.divide(base);
+
+        }
+        return result.toString();
+        
     }
 
     // Permet au joueur actuel de faire un mouvement
@@ -279,8 +320,15 @@ public class Gomoku {
     // Démarre le jeu avec l'interaction utilisateur
     public void playGame() {
         Scanner scanner = new Scanner(System.in);
+        File file = new File("dictionnaire.txt");
+        BufferedWriter bf = null;
+
+        try {
+            bf = new BufferedWriter(new FileWriter(file,true));        
         while (true) {
+            
             printBoard();
+            System.out.println(boardID());
             System.out.println("C'est le tour du joueur " + currentPlayer);
             if (currentPlayer == PLAYER1) {
 //                makeMinimaxMove();
@@ -290,14 +338,27 @@ public class Gomoku {
                 int col = scanner.nextInt();
                 if (row >= 0 && row < SIZE && col >= 0 && col < SIZE) {
                     makeMove(row, col);
-                } else {
+                    } else {
                     System.out.println("Coordonnées invalides. Essayez de nouveau.");
                 }
             } else {
                 makeMinimaxMove(); // Le joueur 2 joue un coup aléatoire
             }
-        }
-    }
+            //map.put(boardID(),calculateScore());
+
+                bf.write(boardID()+":"+calculateScore());
+                bf.newLine();
+                bf.flush();
+          }  } catch (IOException e) {
+            }
+            
+        try {
+                bf.close();
+            } catch (Exception e) {
+            }
+          }
+
+    
 
 	public static void main(String[] args) {
 		Gomoku game = new Gomoku();
