@@ -27,6 +27,7 @@ public class Gomoku {
     private static final int DEPTH = 3;
     private static final String BASE64_CHARS ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     private HashMap<String,Integer> map = new HashMap<String,Integer>();
+    private static int nombrePions =0;
 
     private final int[] firstMoves = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -227,13 +228,17 @@ public class Gomoku {
         int maxCol = -1;
 
         if (depth == 0 || emptyPositions.isEmpty()) {
-            maxScore = calculateScore();
+            maxScore = findIDScore();
+            if(maxScore == -1){
+                maxScore = calculateScore();
+            }
 
         } else {
             for (int index : emptyPositions) {
                 int row = index / SIZE;
                 int col = index % SIZE;
                 board.set(index, player);
+                nombrePions++;
                 // max joueur 2: O
                 if (player == PLAYER2) {
                     score = minimax(depth - 1, PLAYER1, alpha, beta)[0];
@@ -256,6 +261,7 @@ public class Gomoku {
                 }
 
                 board.set(index, EMPTY);
+                nombrePions--;
 
                 if (beta <= alpha) {
                     break;
@@ -320,11 +326,8 @@ public class Gomoku {
     // Démarre le jeu avec l'interaction utilisateur
     public void playGame() {
         Scanner scanner = new Scanner(System.in);
-        File file = new File("dictionnaire.txt");
-        BufferedWriter bf = null;
-
-        try {
-            bf = new BufferedWriter(new FileWriter(file,true));        
+        
+               
         while (true) {
             
             printBoard();
@@ -344,20 +347,55 @@ public class Gomoku {
             } else {
                 makeMinimaxMove(); // Le joueur 2 joue un coup aléatoire
             }
+            nombrePions++;
             //map.put(boardID(),calculateScore());
-
-                bf.write(boardID()+":"+calculateScore());
-                bf.newLine();
-                bf.flush();
-          }  } catch (IOException e) {
-            }
+            fillFile();
+          }
             
-        try {
-                bf.close();
-            } catch (Exception e) {
-            }
+        
           }
 
+    public int findIDScore(){
+        String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
+        boolean found = false;
+        BufferedReader in = new BufferedReader(new FileReader(name));
+        Scanner read = new Scanner(in);
+        read.useDelimiter(":");
+        String ID,score;
+
+        while(read.hasNext())
+        {
+            ID = read.next();
+            score = read.next();
+            if(ID == boardID()){
+                found = true;
+                break;
+            }
+        }
+        read.close();
+        if(found){
+            return Integer.parseInt(score);
+        }
+        else return -1;
+
+    }
+
+    public void fillFile(){
+        String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
+        File file = new File(name);
+        BufferedWriter bf = null;
+        try{
+            bf = new BufferedWriter(new FileWriter(file,true)); 
+            bf.write(boardID()+":"+calculateScore());
+            bf.newLine();
+            bf.flush();
+        }catch(IOException e){
+
+        }finally{
+            bf.close();
+            file.close();
+        }
+    }
     
 
 	public static void main(String[] args) {
