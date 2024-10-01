@@ -358,25 +358,31 @@ public class Gomoku {
     public int findIDScore(){
         String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
         boolean found = false;
-        BufferedReader in = new BufferedReader(new FileReader(name));
-        Scanner read = new Scanner(in);
-        read.useDelimiter(":");
-        String ID,score;
+        BufferedReader in;
+        try {
+            in = new BufferedReader(new FileReader(name));
+            Scanner read = new Scanner(in);
+            read.useDelimiter(":");
+            String ID,score="";
 
-        while(read.hasNext())
-        {
-            ID = read.next();
-            score = read.next();
-            if(ID == boardID()){
-                found = true;
-                break;
+            while(read.hasNext())
+            {
+                ID = read.next();
+                score = read.next();
+                if(ID == boardID()){
+                    found = true;
+                    break;
+                }
             }
+            read.close();
+            if(found){
+                return Integer.parseInt(score);
+            }
+        } catch (FileNotFoundException ex) {
         }
-        read.close();
-        if(found){
-            return Integer.parseInt(score);
-        }
-        else return -1;
+       
+       
+         return -1;
 
     }
 
@@ -389,12 +395,11 @@ public class Gomoku {
             bf.write(boardID()+":"+calculateScore());
             bf.newLine();
             bf.flush();
+            bf.close();
         }catch(IOException e){
 
-        }finally{
-            bf.close();
-            file.close();
         }
+        
     }
     
 
