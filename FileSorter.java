@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.util.*;
 
@@ -38,9 +39,9 @@ public class FileSorter {
                 writer.newLine();
             }
             writer.close();
-            System.out.println("Added new line: " + newLine);
+            // System.out.println("Added new line: " + newLine);
         } else {
-            System.out.println("Line with key '" + newKey + "' already exists. Skipping addition.");
+            // System.out.println("Line with key '" + newKey + "' already exists. Skipping addition.");
         }
     }
 }

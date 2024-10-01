@@ -1,5 +1,3 @@
-package Gomoku;
-
 import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -24,7 +22,7 @@ public class Gomoku {
     private List<Character> board; // Plateau représenté comme une liste
     private char currentPlayer;
     private Random random;
-    private static final int DEPTH = 3;
+    private static final int DEPTH = 2;
     private static final String BASE64_CHARS ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     private HashMap<String,Integer> map = new HashMap<String,Integer>();
     private static int nombrePions =0;
@@ -213,8 +211,8 @@ public class Gomoku {
 
     }
 
-    public int[] minimax(int depth, char player, int alpha, int beta) {
-
+    public int[] minimax(int depth, char player, int alpha, int beta) throws IOException {
+        // System.out.println(depth);
         List<Integer> emptyPositions = new ArrayList<>();
         for (int i = 0; i < board.size(); i++) {
             if (board.get(i) == EMPTY) {
@@ -231,6 +229,8 @@ public class Gomoku {
             maxScore = findIDScore();
             if(maxScore == -1){
                 maxScore = calculateScore();
+            }else{
+                System.out.println("here");
             }
 
         } else {
@@ -239,6 +239,8 @@ public class Gomoku {
                 int col = index % SIZE;
                 board.set(index, player);
                 nombrePions++;
+                String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
+                FileSorter.addLineToFile(name,boardID()+":"+calculateScore());
                 // max joueur 2: O
                 if (player == PLAYER2) {
                     score = minimax(depth - 1, PLAYER1, alpha, beta)[0];
@@ -272,8 +274,8 @@ public class Gomoku {
 
     }
 
-    public void makeMinimaxMove() {
-        int[] bestMoves = minimax(DEPTH, PLAYER2, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    public void makeMinimaxMove() throws IOException {
+        int[] bestMoves = minimax(DEPTH, currentPlayer, Integer.MIN_VALUE, Integer.MAX_VALUE);
         makeMove(bestMoves[1], bestMoves[2]);
     }
 
@@ -324,7 +326,7 @@ public class Gomoku {
     }
 
     // Démarre le jeu avec l'interaction utilisateur
-    public void playGame() {
+    public void playGame() throws IOException {
         Scanner scanner = new Scanner(System.in);
         
                
@@ -333,35 +335,41 @@ public class Gomoku {
             printBoard();
             System.out.println(boardID());
             System.out.println("C'est le tour du joueur " + currentPlayer);
-            if (currentPlayer == PLAYER1) {
-//                makeMinimaxMove();
-                System.out.print("Entrez la ligne: ");
-                int row = scanner.nextInt();
-                System.out.print("Entrez la colonne: ");
-                int col = scanner.nextInt();
-                if (row >= 0 && row < SIZE && col >= 0 && col < SIZE) {
-                    makeMove(row, col);
-                    } else {
-                    System.out.println("Coordonnées invalides. Essayez de nouveau.");
+            if(nombrePions==0){
+                makeMove(7, 8);
+                if(findIDScore() == -1){
+                    fillFile();
                 }
+            }else if (currentPlayer == PLAYER1) {
+                makeMinimaxMove();
+                // System.out.print("Entrez la ligne: ");
+                // int row = scanner.nextInt();
+                // System.out.print("Entrez la colonne: ");
+                // int col = scanner.nextInt();
+                // if (row >= 0 && row < SIZE && col >= 0 && col < SIZE) {
+                //     makeMove(row, col);
+                //     } else {
+                //     System.out.println("Coordonnées invalides. Essayez de nouveau.");
+                // }
             } else {
                 makeMinimaxMove(); // Le joueur 2 joue un coup aléatoire
             }
+            // fillFile();
             nombrePions++;
             //map.put(boardID(),calculateScore());
-            fillFile();
-          }
+            
+        }}
             
         
-          }
+          
 
     public int findIDScore(){
         String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
         boolean found = false;
-        BufferedReader in;
+        BufferedReader br = null;
         String ID,score="";
         try {
-            in = new BufferedReader(new FileReader(name));
+            br = new BufferedReader(new FileReader(name));
             
 
             String line = null; 
@@ -403,13 +411,13 @@ public class Gomoku {
     }
 
 
-    public void fillFile(){
+    public void fillFile() throws IOException{
         String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
         FileSorter.addLineToFile(name,boardID()+":"+calculateScore());
     }
     
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		Gomoku game = new Gomoku();
 		game.playGame();
 	}
