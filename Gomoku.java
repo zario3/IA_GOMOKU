@@ -359,47 +359,53 @@ public class Gomoku {
         String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
         boolean found = false;
         BufferedReader in;
+        String ID,score="";
         try {
             in = new BufferedReader(new FileReader(name));
-            Scanner read = new Scanner(in);
-            read.useDelimiter(":");
-            String ID,score="";
+            
 
-            while(read.hasNext())
-            {
-                ID = read.next();
-                score = read.next();
+            String line = null; 
+  
+
+            while ((line = br.readLine()) != null) { 
+
+                String[] parts = line.split(":"); 
+
+                ID = parts[0].trim(); 
+                score = parts[1].trim(); 
+
                 if(ID == boardID()){
                     found = true;
                     break;
                 }
             }
-            read.close();
-            if(found){
-                return Integer.parseInt(score);
-            }
-        } catch (FileNotFoundException ex) {
         }
+        catch(Exception e){
+
+        }finally{
+            if (br != null) { 
+                try { 
+                    br.close(); 
+                } 
+                catch (Exception e) { 
+                }; 
+            } 
+        
+        }
+        if(found){
+            return Integer.parseInt(score);
+        }
+        
        
        
          return -1;
 
     }
 
+
     public void fillFile(){
         String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
-        File file = new File(name);
-        BufferedWriter bf = null;
-        try{
-            bf = new BufferedWriter(new FileWriter(file,true)); 
-            bf.write(boardID()+":"+calculateScore());
-            bf.newLine();
-            bf.flush();
-            bf.close();
-        }catch(IOException e){
-
-        }
-        
+        FileSorter.addLineToFile(name,boardID()+":"+calculateScore());
     }
     
 
