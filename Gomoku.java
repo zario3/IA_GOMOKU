@@ -1,10 +1,15 @@
+package gomoku;
+
+
 import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 
 /*Gomoku class pour aider les étudiants à ne pas tout coder.
 //@author JBC
@@ -13,6 +18,9 @@ sans doute pas clair pour les étudiants.
 On ne gére pas le cas du match nul, faut check si board plein et on arrete (ou alors on compte le nombre de coup en tout et 
 on arrete à SIZE*SIZE
 */
+
+
+
 public class Gomoku {
 
     private static final int SIZE = 15; // Taille du plateau (15x15)
@@ -24,8 +32,13 @@ public class Gomoku {
     private Random random;
     private static final int DEPTH = 2;
     private static final String BASE64_CHARS ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    private HashMap<String,Integer> map = new HashMap<String,Integer>();
+    
     private static int nombrePions =0;
+    
+    private boolean saving = false;
+
+    private HashMap<String, Integer>[] pionCaches;
+
 
     private final int[] firstMoves = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -43,13 +56,72 @@ public class Gomoku {
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    public Gomoku() {
+    public Gomoku(boolean saving) {
+        this.saving = saving;
         board = new ArrayList<>();
         for (int i = 0; i < SIZE * SIZE; i++) {
             board.add(EMPTY);
         }
         currentPlayer = PLAYER1; // Le joueur 1 commence
         random = new Random();
+
+        pionCaches = new HashMap[SIZE * SIZE + 1];
+        for (int i = 0; i <= SIZE * SIZE; i++) {
+            pionCaches[i] = new HashMap<>();
+            loadScoresFromFile(i); 
+        }
+    }
+
+    private void loadScoresFromFile(int pionCount) {
+        String filename = "dictionnaires/dictionnaire" + pionCount + ".txt";
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":");
+                if (parts.length == 2) {
+                    pionCaches[pionCount].put(parts[0], Integer.parseInt(parts[1]));
+                }
+            }
+        } catch (IOException e) {
+            // System.err.println("Could not read file: " + filename);
+        }
+    }
+
+private void saveScoresToFile(int pionCount) {
+    String filename = "dictionnaires/dictionnaire" + pionCount + ".txt";
+    
+    // lire les fichiers pour eviter les doubles
+    Set<String> existingIDs = new HashSet<>();
+    try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(":");
+            if (parts.length > 0) {
+                existingIDs.add(parts[0].trim()); // Add existing ID to the set
+            }
+        }
+    } catch (IOException e) {
+        
+    }
+
+    // ecrire les scores dans le fichier
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {  // 'true' enables append mode
+        for (String key : pionCaches[pionCount].keySet()) {
+            if (!existingIDs.contains(key)) { // verifier les doubles
+                writer.write(key + ":" + pionCaches[pionCount].get(key));
+                writer.newLine();
+            }
+        }
+    } catch (IOException e) {
+        System.err.println("Could not write to file: " + filename);
+    }
+}
+
+
+    public void storeIDScore(int score) {
+        String boardState = boardID();
+        pionCaches[nombrePions].put(boardState, score);
+        saveScoresToFile(nombrePions);  
     }
 
     // Affiche le plateau de jeu
@@ -211,6 +283,18 @@ public class Gomoku {
 
     }
 
+    public int findIDScore() {
+        String boardState = boardID();
+        if (pionCaches[nombrePions].containsKey(boardState)) {
+            return pionCaches[nombrePions].get(boardState);
+        }
+        int score = calculateScore();
+        if(saving == true){
+        storeIDScore(score);  //sauvegarder score apres calcul
+        }
+        return score;
+    }
+
     public int[] minimax(int depth, char player, int alpha, int beta) throws IOException {
         // System.out.println(depth);
         List<Integer> emptyPositions = new ArrayList<>();
@@ -221,17 +305,12 @@ public class Gomoku {
         }
 
         int maxScore = (player == PLAYER2) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
-        int score;
+//        int score;
         int maxRow = -1;
         int maxCol = -1;
 
         if (depth == 0 || emptyPositions.isEmpty()) {
             maxScore = findIDScore();
-            if(maxScore == -1){
-                maxScore = calculateScore();
-            }else{
-                System.out.println("here");
-            }
 
         } else {
             for (int index : emptyPositions) {
@@ -239,31 +318,30 @@ public class Gomoku {
                 int col = index % SIZE;
                 board.set(index, player);
                 nombrePions++;
-                String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
-                FileSorter.addLineToFile(name,boardID()+":"+calculateScore());
+                
                 // max joueur 2: O
-                if (player == PLAYER2) {
-                    score = minimax(depth - 1, PLAYER1, alpha, beta)[0];
-                    // a chaque nouveau maxScore, prendre valeur de la colonne et de la ligne aussi.
-                    if (score > maxScore) {
+                int score = minimax(depth - 1, (player == PLAYER1) ? PLAYER2 : PLAYER1, alpha, beta)[0];
+                board.set(index, EMPTY);
+                nombrePions--;
+
+                if (player == PLAYER2 && score > maxScore) {
+                    
                         maxScore = score;
                         maxRow = row;
                         maxCol = col;
-                    }
+                        
                     alpha = Math.max(alpha, maxScore);
                     //min (joueur 1: X)
-                } else if (player == PLAYER1) {
-                    score = minimax(depth - 1, PLAYER2, alpha, beta)[0];
-                    if (score < maxScore) {
+                } else if (player == PLAYER1 && score < maxScore) {
+                    
                         maxScore = score;
                         maxRow = row;
                         maxCol = col;
-                    }
+                        
                     beta = Math.min(beta, maxScore);
                 }
 
-                board.set(index, EMPTY);
-                nombrePions--;
+                
 
                 if (beta <= alpha) {
                     break;
@@ -337,9 +415,7 @@ public class Gomoku {
             System.out.println("C'est le tour du joueur " + currentPlayer);
             if(nombrePions==0){
                 makeMove(7, 8);
-                if(findIDScore() == -1){
-                    fillFile();
-                }
+                
             }else if (currentPlayer == PLAYER1) {
                 makeMinimaxMove();
                 // System.out.print("Entrez la ligne: ");
@@ -354,71 +430,16 @@ public class Gomoku {
             } else {
                 makeMinimaxMove(); // Le joueur 2 joue un coup aléatoire
             }
-            // fillFile();
+            
             nombrePions++;
-            //map.put(boardID(),calculateScore());
+            
             
         }}
-            
-        
-          
-
-    public int findIDScore(){
-        String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
-        boolean found = false;
-        BufferedReader br = null;
-        String ID,score="";
-        try {
-            br = new BufferedReader(new FileReader(name));
-            
-
-            String line = null; 
-  
-
-            while ((line = br.readLine()) != null) { 
-
-                String[] parts = line.split(":"); 
-
-                ID = parts[0].trim(); 
-                score = parts[1].trim(); 
-
-                if(ID == boardID()){
-                    found = true;
-                    break;
-                }
-            }
-        }
-        catch(Exception e){
-
-        }finally{
-            if (br != null) { 
-                try { 
-                    br.close(); 
-                } 
-                catch (Exception e) { 
-                }; 
-            } 
-        
-        }
-        if(found){
-            return Integer.parseInt(score);
-        }
-        
-       
-       
-         return -1;
-
-    }
-
-
-    public void fillFile() throws IOException{
-        String name = "dictionnaires/dictionnaire"+nombrePions+".txt";
-        FileSorter.addLineToFile(name,boardID()+":"+calculateScore());
-    }
-    
+                 
 
 	public static void main(String[] args) throws IOException {
-		Gomoku game = new Gomoku();
+            // false pour ne pas sauvegarder les coups calcules, true pour le faire
+		Gomoku game = new Gomoku(true);
 		game.playGame();
 	}
 }
