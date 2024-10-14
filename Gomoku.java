@@ -30,8 +30,10 @@ public class Gomoku {
     private List<Character> board; // Plateau représenté comme une liste
     private char currentPlayer;
     private Random random;
-    private static final int DEPTH = 2;
+    private static final int DEPTH = 3;
     private static final String BASE64_CHARS ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    private final int[] poidsPlayer1;
+    private final int[] poidsPlayer2;
     
     private static int nombrePions =0;
     
@@ -47,7 +49,7 @@ public class Gomoku {
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 300, 300, 300, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 300, 500, 300, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 300, 300, 300, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 300, 300, 300, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -56,7 +58,7 @@ public class Gomoku {
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    public Gomoku(boolean saving) {
+    public Gomoku(boolean saving, int[] poidsPlayer1, int[] poidsPlayer2) {
         this.saving = saving;
         board = new ArrayList<>();
         for (int i = 0; i < SIZE * SIZE; i++) {
@@ -70,6 +72,8 @@ public class Gomoku {
             pionCaches[i] = new HashMap<>();
             loadScoresFromFile(i); 
         }
+        this.poidsPlayer1 = poidsPlayer1;
+        this.poidsPlayer2 = poidsPlayer2;
     }
 
     private void loadScoresFromFile(int pionCount) {
@@ -203,15 +207,15 @@ private void saveScoresToFile(int pionCount) {
     }
 
     // calcul score du tableau
-    private int calculateScore() {
+    private int calculateScore(int[] poids) {
         int score = 0;
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
                 char player = board.get(row * SIZE + col);
                 if (player == PLAYER1) {
-                    score -= calculDirection(row, col, player);
+                    score -= calculDirection(row, col, player, poids);
                 } else if (player == PLAYER2) {
-                    score += calculDirection(row, col, player);
+                    score += calculDirection(row, col, player, poids);
                     int index = row * SIZE + col;
                     score += firstMoves[index];
                 }
@@ -222,17 +226,17 @@ private void saveScoresToFile(int pionCount) {
     }
     // calcul score d'une direction
 
-    private int calculDirection(int row, int col, char player) {
+    private int calculDirection(int row, int col, char player, int[] poids) {
         int score = 0;
-        score += scoreDirection(row, col, 1, 0, player);
-        score += scoreDirection(row, col, 0, 1, player);
-        score += scoreDirection(row, col, 1, 1, player);
-        score += scoreDirection(row, col, 1, -1, player);
+        score += scoreDirection(row, col, 1, 0, player, poids);
+        score += scoreDirection(row, col, 0, 1, player, poids);
+        score += scoreDirection(row, col, 1, 1, player, poids);
+        score += scoreDirection(row, col, 1, -1, player, poids);
 
         return score;
     }
 
-    private int scoreDirection(int row, int col, int dRow, int dCol, char player) {
+    private int scoreDirection(int row, int col, int dRow, int dCol, char player, int[] poids) {
 
         int compteur = 0;
         int vide = 0;
@@ -267,35 +271,35 @@ private void saveScoresToFile(int pionCount) {
         if (compteur == 5) {
             return 99999;
         } else if (compteur == 4 && vide == 2) {
-            return 8000;
+            return poids[5];
         } else if (compteur == 4 && vide == 1) {
-            return 5000;
+            return poids[4];
         } else if (compteur == 3 && vide == 2) {
-            return 3000;
+            return poids[3];
         } else if (compteur == 3 && vide == 1) {
-            return 1000;
+            return poids[2];
         } else if (compteur == 2 && vide == 2) {
-            return 100;
+            return poids[1];
         } else if (compteur == 2 && vide == 1) {
-            return 50;
+            return poids[0];
         }
         return 0;
 
     }
 
-    public int findIDScore() {
-        String boardState = boardID();
-        if (pionCaches[nombrePions].containsKey(boardState)) {
-            return pionCaches[nombrePions].get(boardState);
-        }
-        int score = calculateScore();
-        if(saving == true){
-        storeIDScore(score);  //sauvegarder score apres calcul
-        }
-        return score;
-    }
+    // public int findIDScore() {
+    //     String boardState = boardID();
+    //     if (pionCaches[nombrePions].containsKey(boardState)) {
+    //         return pionCaches[nombrePions].get(boardState);
+    //     }
+    //     int score = calculateScore();
+    //     if(saving == true){
+    //     storeIDScore(score);  //sauvegarder score apres calcul
+    //     }
+    //     return score;
+    // }
 
-    public int[] minimax(int depth, char player, int alpha, int beta) throws IOException {
+    public int[] minimax(int depth, char player, int alpha, int beta, int[] poids) throws IOException {
         // System.out.println(depth);
         List<Integer> emptyPositions = new ArrayList<>();
         for (int i = 0; i < board.size(); i++) {
@@ -310,7 +314,8 @@ private void saveScoresToFile(int pionCount) {
         int maxCol = -1;
 
         if (depth == 0 || emptyPositions.isEmpty()) {
-            maxScore = findIDScore();
+            //maxScore = findIDScore();
+            maxScore = calculateScore(poids);
 
         } else {
             for (int index : emptyPositions) {
@@ -320,7 +325,7 @@ private void saveScoresToFile(int pionCount) {
                 nombrePions++;
                 
                 // max joueur 2: O
-                int score = minimax(depth - 1, (player == PLAYER1) ? PLAYER2 : PLAYER1, alpha, beta)[0];
+                int score = minimax(depth - 1, (player == PLAYER1) ? PLAYER2 : PLAYER1, alpha, beta, poids)[0];
                 board.set(index, EMPTY);
                 nombrePions--;
 
@@ -352,8 +357,8 @@ private void saveScoresToFile(int pionCount) {
 
     }
 
-    public void makeMinimaxMove() throws IOException {
-        int[] bestMoves = minimax(DEPTH, currentPlayer, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    public void makeMinimaxMove(int[] poids) throws IOException {
+        int[] bestMoves = minimax(DEPTH, currentPlayer, Integer.MIN_VALUE, Integer.MAX_VALUE, poids);
         makeMove(bestMoves[1], bestMoves[2]);
     }
 
@@ -417,7 +422,7 @@ private void saveScoresToFile(int pionCount) {
                 makeMove(7, 8);
                 
             }else if (currentPlayer == PLAYER1) {
-                makeMinimaxMove();
+                makeMinimaxMove(poidsPlayer1);
                 // System.out.print("Entrez la ligne: ");
                 // int row = scanner.nextInt();
                 // System.out.print("Entrez la colonne: ");
@@ -428,7 +433,7 @@ private void saveScoresToFile(int pionCount) {
                 //     System.out.println("Coordonnées invalides. Essayez de nouveau.");
                 // }
             } else {
-                makeMinimaxMove(); // Le joueur 2 joue un coup aléatoire
+                makeMinimaxMove(poidsPlayer2); // Le joueur 2 joue un coup aléatoire
             }
             
             nombrePions++;
@@ -439,7 +444,10 @@ private void saveScoresToFile(int pionCount) {
 
 	public static void main(String[] args) throws IOException {
             // false pour ne pas sauvegarder les coups calcules, true pour le faire
-		Gomoku game = new Gomoku(true);
+
+        int tab1[] = {50, 100, 1000, 3000, 5000, 8000};
+        int tab2[] = {10, 100, 1000, 5000, 10000, 20000};
+		Gomoku game = new Gomoku(false, tab1, tab2);
 		game.playGame();
 	}
 }
